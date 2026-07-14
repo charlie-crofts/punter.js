@@ -709,3 +709,7 @@ punter.js requires:
 - `canvas` 2D context with `getImageData`
 
 NOTE: Don't manually resize the canvas - the engine owns that via `resize()`.
+
+## License
+
+[MIT License](LICENSE) © Orca Scan - a [barcode app](https://orcascan.com) with simple [barcode tracking APIs](https://orcascan.com/guides?tag=for-developers).
