@@ -53,12 +53,12 @@ A lightweight, dependency-free JavaScript engine for building 2D canvas games (s
 ### 1. `engine.init(config)`
 Call this once. Loads all sprite images and sounds, sets up the canvas, and fires `ready` when everything's loaded.
 
-| Option | Type | Description |
-|---|---|---|
-| `canvas` | string/element | CSS selector or a `<canvas>` element |
-| `debug` | boolean | Shows FPS counter, sprite bounds, and position labels |
-| `sprites` | object | `{ key: imageUrl }` map — preloaded before `ready` fires |
-| `sounds` | object | `{ key: soundUrl }` map — decoded before `ready` fires |
+| Option    | Type           | Description                                              |
+|-----------|----------------|----------------------------------------------------------|
+| `canvas`  | string/element | CSS selector or a `<canvas>` element                     |
+| `debug`   | boolean        | Shows FPS counter, sprite bounds, and position labels    |
+| `sprites` | object         | `{ key: imageUrl }` map — preloaded before `ready` fires |
+| `sounds`  | object         | `{ key: soundUrl }` map — decoded before `ready` fires   |
 
 ### 2. Scenes
 A scene is just a named function that sets up `update`/`draw` handlers.
@@ -72,13 +72,13 @@ engine.go('menu'); // switches to it and starts the game loop
 ```
 
 ### 3. Events (`engine.on(event, fn)`)
-| Event | When it fires |
-|---|---|
-| `ready` | Once, after all assets are loaded |
-| `update` | ~60 times/sec — put game logic here |
-| `draw` | Every animation frame — put drawing here |
-| `resize` | Whenever the canvas resizes |
-| `go` | Whenever `engine.go()` switches scenes |
+| Event    | When it fires                            |
+|----------|------------------------------------------|
+| `ready`  | Once, after all assets are loaded        |
+| `update` | ~60 times/sec — put game logic here      |
+| `draw`   | Every animation frame — put drawing here |
+| `resize` | Whenever the canvas resizes              |
+| `go`     | Whenever `engine.go()` switches scenes   |
 
 ### 4. Sprites (`engine.createSprite(opts)`)
 ```js
