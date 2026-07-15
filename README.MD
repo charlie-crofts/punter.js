@@ -535,11 +535,12 @@ punter.on('update', function () {
 ```
 
 Property               | Type      | Description
------------------------|-----------|------------------------------------------------------------
+-----------------------|-----------|--------------------------------------------------------------
 `punter.mouse.x`       | `number`  | Horizontal position of the last click/tap in canvas pixels.
-`punter.mouse.clicked` | `boolean` | `true` for one frame after a click or tap.
+`punter.mouse.y`       | `number`  | Vertical position of the last click/tap in canvas pixels.
+`punter.mouse.clicked` | `boolean` | `true` for one update tick after a click or tap, then auto-cleared.
 
-> `mouse.clicked` is **not** automatically reset - call `punter.clearInput()` at the end of handling it, or at the start of each scene.
+> Coordinates are in canvas pixel space — the same coordinate system as `punter.width` / `punter.height` and sprite `x`/`y` values.
 
 ### `punter.clearInput()`
 
@@ -585,6 +586,7 @@ Property             | Type                       | Description
 ---------------------|----------------------------|----------------------------------------------------------------------------
 `punter.width`       | `number`                   | Internal canvas width in pixels (adjusted for device pixel ratio).
 `punter.height`      | `number`                   | Internal canvas height in pixels (adjusted for device pixel ratio).
+`punter.dpr`         | `number`                   | Device pixel ratio used for rendering (capped at `2`).
 `punter.frame`       | `number`                   | Current frame counter, cycling 1–60.
 `punter.totalFrames` | `number`                   | Total number of frames rendered since the loop started.
 `punter.running`     | `boolean`                  | `true` if the game loop is currently running.

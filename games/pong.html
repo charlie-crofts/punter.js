@@ -27,7 +27,7 @@
       // DPR ensures everything is the same physical size on both
       // normal and high-resolution (retina) screens.
       // =========================================================
-      var DPR          = Math.min(window.devicePixelRatio || 1, 2);
+      var DPR          = punter.dpr;
       var MARGIN       = 40  * DPR; // gap between paddle and screen edge
       var PADDLE_W     = 14  * DPR;
       var PADDLE_H     = 90  * DPR;
@@ -88,9 +88,7 @@
 
           // --- Player: tap / click ---
           if (punter.mouse.clicked) {
-            var canvasY = punter.mouse.y * (h / window.innerHeight);
-            playerSprite.y = canvasY - PADDLE_H / 2;
-            punter.mouse.clicked = false;
+            playerSprite.y = punter.mouse.y - PADDLE_H / 2;
           }
 
           // Clamp player paddle inside the screen

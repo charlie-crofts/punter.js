@@ -24,6 +24,7 @@
     var _canvas;
     var _canvasCtx;
     var _boundsCanvas;
+    var _dpr = Math.min(window.devicePixelRatio || 1, 2);
     var _boundsCtx;
     var _initilised = false;
     var _scenes = {};
@@ -53,10 +54,13 @@
     window.addEventListener('keydown', function (e) { keys[e.key] = true; });
     window.addEventListener('keyup', function (e) { keys[e.key] = false; });
 
-    function registerClick(x, y) {
-        mouse.x = x;
-        mouse.y = y;
+    function registerClick(clientX, clientY) {
         mouse.clicked = true;
+        if (!_canvas) { mouse.x = clientX; mouse.y = clientY; return; }
+        var rect = _canvas.getBoundingClientRect();
+        var canvasScale = _canvas.width / rect.width;
+        mouse.x = Math.round((clientX - rect.left) * canvasScale);
+        mouse.y = Math.round((clientY - rect.top) * canvasScale);
     }
 
     document.addEventListener('touchstart', function (e) {
@@ -1021,6 +1025,7 @@
 
             while (accumulator >= step) {
                 eventHandlers.update();
+                mouse.clicked = false;
                 _frame++;
                 _totalFrames++;
                 if (_frame > 60) {
@@ -1234,6 +1239,7 @@
         }
 
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        _dpr = dpr;
 
         if (dpr > 1) {
             _canvas.width = internalW * dpr;
@@ -1459,6 +1465,12 @@
                     if (_sprites[key]) arr.push(_sprites[key]);
                 }
                 return arr;
+            },
+            enumerable: true
+        },
+        dpr: {
+            get: function () {
+                return _dpr;
             },
             enumerable: true
         },

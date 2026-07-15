@@ -61,6 +61,15 @@ describe('Interface', function () {
         expect(result.height).toBeGreaterThan(0);
     });
 
+    it('dpr is a number between 1 and 2', async function () {
+        var result = await page.evaluate(function () {
+            return punter.dpr;
+        });
+        expect(typeof result).toBe('number');
+        expect(result).toBeGreaterThanOrEqual(1);
+        expect(result).toBeLessThanOrEqual(2);
+    });
+
     it('frame is a non-negative number', async function () {
         var result = await page.evaluate(function () {
             return punter.frame;
