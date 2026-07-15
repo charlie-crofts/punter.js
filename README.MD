@@ -2,7 +2,7 @@
 
 A simple, dependency-free 2D game engine for the browser.
 
-**Why?** On the Amiga, AMOS let you build games in BASIC without touching assembly - sprites, sound, and input just worked, so you could get a character moving in minutes. `punter.js` brings that same philosophy to the browser: no build step, no ES6, no dependencies - just a small, readable API in a single file.
+**Why?** Back in the Amiga days, AMOS let you build games in BASIC without touching assembly - sprites, sound, and input just worked, so you could get a character moving in minutes. `punter.js` brings that same philosophy to the browser: no build step, no ES6, no dependencies - just a small, readable API in a single file.
 
 **Features**
 * **Auto-scaling** — fixed internal coordinates scale and automatically reposition sprites on resize
