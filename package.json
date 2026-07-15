@@ -7,6 +7,7 @@
     "test": "tests"
   },
   "scripts": {
+    "start": "npx serve .",
     "test": ". \"$NVM_DIR/nvm.sh\" && nvm use && NODE_ENV=test TZ=UTC node_modules/.bin/jasmine --config=tests/jasmine/config.json"
   },
   "repository": {

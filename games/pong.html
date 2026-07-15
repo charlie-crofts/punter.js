@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pong</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; background: #1e2230; overflow: hidden; }
+      canvas { display: block; }
+    </style>
+    <script src="../punter.js"></script>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+    <script>
+
+      // =========================================================
+      // COLORS  (Orca Scan brand palette)
+      // =========================================================
+      var COLOR_BG    = '#1b2125';
+      var COLOR_NET   = '#2c3033';
+      var COLOR_SCORE = '#f5c518';
+
+      // =========================================================
+      // GAME SETTINGS
+      // DPR ensures everything is the same physical size on both
+      // normal and high-resolution (retina) screens.
+      // =========================================================
+      var DPR          = Math.min(window.devicePixelRatio || 1, 2);
+      var MARGIN       = 40  * DPR; // gap between paddle and screen edge
+      var PADDLE_W     = 14  * DPR;
+      var PADDLE_H     = 90  * DPR;
+      var BALL_SIZE    = 14  * DPR;
+      var PADDLE_SPEED = 7   * DPR;
+      var AI_SPEED     = 5   * DPR;
+      var BALL_SPEED   = 5   * DPR;
+      var BALL_MAX     = 14  * DPR;
+
+      // =========================================================
+      // GAME STATE
+      // =========================================================
+      var ballVel = { x: BALL_SPEED, y: BALL_SPEED * 0.6 }; // ball direction + speed
+      var score   = { player: 0, ai: 0 };
+
+      // Sprite references — set when the scene starts
+      var playerSprite, aiSprite, ballSprite;
+
+      // =========================================================
+      // SETUP
+      // Load the two sprite images before the game starts.
+      // =========================================================
+      punter.init({
+        canvas: '#game',
+        sprites: {
+          paddle: '../images/pong/sprites/paddle.png',
+          ball:   '../images/pong/sprites/ball.png'
+        }
+      });
+
+      // =========================================================
+      // SCENE: play
+      // =========================================================
+      punter.scene('play', function () {
+
+        // Create the three sprites punter.js will draw each frame.
+        // w/h set the draw size; the image is scaled to fit automatically.
+        playerSprite = punter.createSprite({ id: 'player', key: 'paddle', x: 0, y: 0, w: PADDLE_W, h: PADDLE_H });
+        aiSprite     = punter.createSprite({ id: 'ai',     key: 'paddle', x: 0, y: 0, w: PADDLE_W, h: PADDLE_H });
+        ballSprite   = punter.createSprite({ id: 'ball',   key: 'ball',   x: 0, y: 0, w: BALL_SIZE, h: BALL_SIZE });
+
+        // Place everything in the correct starting position
+        resetPositions();
+
+        // -------------------------------------------------------
+        // UPDATE — game logic, runs ~60 times per second
+        // -------------------------------------------------------
+        punter.on('update', function () {
+          var w = punter.width;
+          var h = punter.height;
+
+          // Keep AI paddle pinned to the right edge (handles resize too)
+          aiSprite.x = w - MARGIN - PADDLE_W;
+
+          // --- Player: keyboard ---
+          if (punter.keys['ArrowUp']   || punter.keys['w']) playerSprite.y -= PADDLE_SPEED;
+          if (punter.keys['ArrowDown'] || punter.keys['s']) playerSprite.y += PADDLE_SPEED;
+
+          // --- Player: tap / click ---
+          if (punter.mouse.clicked) {
+            var canvasY = punter.mouse.y * (h / window.innerHeight);
+            playerSprite.y = canvasY - PADDLE_H / 2;
+            punter.mouse.clicked = false;
+          }
+
+          // Clamp player paddle inside the screen
+          playerSprite.y = Math.max(0, Math.min(playerSprite.y, h - PADDLE_H));
+
+          // --- AI: follow the ball ---
+          var aiMid = aiSprite.y + PADDLE_H / 2;
+          if (ballSprite.y < aiMid - 10) aiSprite.y -= AI_SPEED;
+          if (ballSprite.y > aiMid + 10) aiSprite.y += AI_SPEED;
+          aiSprite.y = Math.max(0, Math.min(aiSprite.y, h - PADDLE_H));
+
+          // --- Move the ball ---
+          ballSprite.x += ballVel.x;
+          ballSprite.y += ballVel.y;
+
+          // Bounce off top and bottom walls
+          if (ballSprite.y <= 0)              { ballVel.y =  Math.abs(ballVel.y); ballSprite.y = 0; }
+          if (ballSprite.y >= h - BALL_SIZE)  { ballVel.y = -Math.abs(ballVel.y); ballSprite.y = h - BALL_SIZE; }
+
+          // --- Collision: ball hits player paddle ---
+          if (ballVel.x < 0 && ballSprite.isCollidingWith(playerSprite)) {
+
+            ballVel.x   = Math.abs(ballVel.x) * 1.05;
+            ballSprite.x = playerSprite.x + PADDLE_W;
+            var hit = (ballSprite.y + BALL_SIZE / 2 - playerSprite.y) / PADDLE_H;
+            ballVel.y = (hit - 0.5) * BALL_SPEED * 2;
+          }
+
+          // --- Collision: ball hits AI paddle ---
+          if (ballVel.x > 0 && ballSprite.isCollidingWith(aiSprite)) {
+
+            ballVel.x   = -Math.abs(ballVel.x) * 1.05;
+            ballSprite.x = aiSprite.x - BALL_SIZE;
+            var hit = (ballSprite.y + BALL_SIZE / 2 - aiSprite.y) / PADDLE_H;
+            ballVel.y = (hit - 0.5) * BALL_SPEED * 2;
+          }
+
+          // Cap ball speed so the game stays playable
+          if (ballVel.x >  BALL_MAX) ballVel.x =  BALL_MAX;
+          if (ballVel.x < -BALL_MAX) ballVel.x = -BALL_MAX;
+
+          // --- Scoring ---
+          if (ballSprite.x + BALL_SIZE < 0) { score.ai++;     resetBall(1);  }
+          if (ballSprite.x > w)             { score.player++; resetBall(-1); }
+        });
+
+        // -------------------------------------------------------
+        // DRAW — render each frame; 'this' is the canvas 2D context
+        // -------------------------------------------------------
+        punter.on('draw', function () {
+          var ctx = this;
+          var w   = punter.width;
+          var h   = punter.height;
+
+          // Background
+          ctx.fillStyle = COLOR_BG;
+          ctx.fillRect(0, 0, w, h);
+
+          // Dashed centre line
+          ctx.setLineDash([8 * DPR, 10 * DPR]);
+          ctx.strokeStyle = COLOR_NET;
+          ctx.lineWidth   = 2 * DPR;
+          ctx.beginPath();
+          ctx.moveTo(w / 2, 0);
+          ctx.lineTo(w / 2, h);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Sprites — punter.js scales and draws the PNG images
+          playerSprite.draw(ctx);
+          aiSprite.draw(ctx);
+          ballSprite.draw(ctx);
+
+          // Scores
+          ctx.fillStyle    = COLOR_SCORE;
+          ctx.font         = 'bold ' + (48 * DPR) + 'px monospace';
+          ctx.textAlign    = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(score.player, w / 2 - 70 * DPR, 20 * DPR);
+          ctx.fillText(score.ai,     w / 2 + 70 * DPR, 20 * DPR);
+
+          // Controls hint
+          ctx.fillStyle    = COLOR_NET;
+          ctx.font         = (14 * DPR) + 'px monospace';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText('Arrow keys or W / S  ·  tap to move', w / 2, h - 12 * DPR);
+        });
+      });
+
+      // =========================================================
+      // resetPositions — centres the paddles and resets the ball.
+      // Called when the scene starts and on every window resize.
+      // =========================================================
+      function resetPositions() {
+        // Sprites aren't created until the ready event fires and the scene runs.
+        // The engine's resize can fire before that, so bail out early if not ready.
+        if (!playerSprite || !aiSprite || !ballSprite) return;
+
+        var w = punter.width;
+        var h = punter.height;
+
+        playerSprite.x = MARGIN;
+        playerSprite.y = h / 2 - PADDLE_H / 2;
+
+        aiSprite.x = w - MARGIN - PADDLE_W;
+        aiSprite.y = h / 2 - PADDLE_H / 2;
+
+        resetBall(-1);
+      }
+
+      // =========================================================
+      // resetBall — puts the ball back in the centre.
+      // dir: -1 serves toward the AI, 1 serves toward the player.
+      // =========================================================
+      function resetBall(dir) {
+        ballSprite.x = punter.width  / 2 - BALL_SIZE / 2;
+        ballSprite.y = punter.height / 2 - BALL_SIZE / 2;
+        ballVel.x    = BALL_SPEED * dir;
+        ballVel.y    = (Math.random() - 0.5) * BALL_SPEED * 1.2;
+      }
+
+      // Re-centre everything when the browser window resizes
+      punter.on('resize', function () {
+        resetPositions();
+      });
+
+      // =========================================================
+      // START — go to the play scene once everything is loaded
+      // =========================================================
+      punter.on('ready', function () {
+        score = { player: 0, ai: 0 };
+        punter.go('play');
+      });
+
+    </script>
+  </body>
+</html>
