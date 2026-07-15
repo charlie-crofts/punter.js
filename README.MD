@@ -5,11 +5,11 @@ A simple, dependency-free 2D game engine for the browser.
 **Why?** Back in the Amiga days, AMOS let you build games in BASIC without touching assembly - sprites, sound, and input just worked, so you could get a character moving in minutes. `punter.js` brings that same philosophy to the browser: no build step, no ES6, no dependencies - just a small single file with a readable API.
 
 **Features**
-* **Auto-scaling** — fixed internal coordinates scale and automatically reposition sprites on resize
-* **Retina support** — renders at up to 2× device pixel ratio automatically
-* **Pixel-accurate collision** — bounding boxes ignore transparent pixels
-* **HTML state attributes** — `data-punter-*` attributes on `<html>` let you drive CSS from game state
-* **CSS variables** — `--punter-vpw`/`--punter-vph` on `<html>`, updated on resize
+* **Auto-scaling** - fixed internal coordinates scale and automatically reposition sprites on resize
+* **Retina support** - renders at up to 2× device pixel ratio automatically
+* **Pixel-accurate collision** - bounding boxes ignore transparent pixels
+* **HTML state attributes** - `data-punter-*` attributes on `<html>` let you drive CSS from game state
+* **CSS variables** - `--punter-vpw`/`--punter-vph` on `<html>`, updated on resize
 
 ## Contents
 
