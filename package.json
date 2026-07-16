@@ -1,7 +1,7 @@
 {
   "name": "punter.js",
-  "version": "1.0.1",
-  "description": "A lightweight, dependency-free JavaScript 2D game engine for the browser. Drop in a script tag and start building.",
+  "version": "1.1.0",
+  "description": "A simple, dependency-free 2D game engine for the browser. No build step, no frameworks - just one script tag.",
   "main": "punter.js",
   "directories": {
     "test": "tests"
