@@ -1113,6 +1113,7 @@
 
             source.connect(gainNode);
             gainNode.connect(audioCtx.destination);
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             source.start(0);
 
             if (!options || !options.once) {
