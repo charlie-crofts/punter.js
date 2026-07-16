@@ -49,13 +49,11 @@ Download `punter.js` and include it with a script tag before your game code:
 
 The repo includes a Pong game in `games/pong.html`. Open it with a local web server - browsers block local file loading without one.
 
-```bash
-npm start
-```
+**VS Code (recommended):** Run the **Start dev server** launch configuration (Run → Start Debugging), then open **http://localhost:4000/games/pong.html** in your browser.
 
-Then open **http://localhost:3000/games/pong.html** in your browser.
+**Terminal:** Run `npm start`, then open **http://localhost:3000/games/pong.html** in your browser.
 
-> `npm start` uses `npx serve` - no install step needed beyond having Node.js.
+> Uses `npx serve` - no install step needed beyond having Node.js.
 
 ## How it Works
 
