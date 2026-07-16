@@ -62,7 +62,7 @@ Every punter.js game follows the same three-step pattern:
 
 1. **setup** - specify which canvas to use and which images/sounds to preload
 2. **scene** - define a named scene (level, menu, etc.) with update/draw logic
-3. **go** - call `punter.go()` to start. If assets are still loading, the engine waits and starts automatically
+3. **go** - call `punter.go()` to start
 
 ```js
 // 1. Load assets
