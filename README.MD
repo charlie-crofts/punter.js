@@ -47,13 +47,11 @@ Download `punter.js` and include it with a script tag before your game code:
 
 ## Run the Example
 
-The repo includes a Pong game in `games/pong.html`. Open it with a local web server - browsers block local file loading without one.
+The repo includes a few games in `games`. To try these examples using:
 
 **VS Code (recommended):** Run the **Start dev server** launch configuration (Run → Start Debugging), then open **http://localhost:4000/games/pong.html** in your browser.
 
 **Terminal:** Run `npm start`, then open **http://localhost:3000/games/pong.html** in your browser.
-
-> Uses `npx serve` - no install step needed beyond having Node.js.
 
 ## How it Works
 
@@ -61,7 +59,7 @@ Every punter.js game follows the same three-step pattern:
 
 1. **setup** - specify which canvas to use and which images/sounds to preload
 2. **scene** - define a named scene (level, menu, etc.) with update/draw logic
-3. **go** - call `punter.go()` to start. If assets are still loading, the engine waits and starts automatically once they're ready
+3. **go** - call `punter.go()` to start. If assets are still loading, the engine waits and starts automatically
 
 ```js
 // 1. Load assets
