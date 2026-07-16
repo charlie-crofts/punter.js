@@ -106,11 +106,11 @@
     })();
 
     /**
-     * Initialises the engine with canvas, sprites, sounds, and buttons
+     * Initialises the engine with canvas, images, sounds, and buttons
      * @param {Object} config - configuration object
      * @returns {void}
      */
-    function init(config) {
+    function setup(config) {
 
         config = config || {};
 
@@ -151,11 +151,11 @@
         _boundsCanvas = document.createElement('canvas');
         _boundsCtx = _boundsCanvas.getContext('2d', { willReadFrequently: true });
 
-        loadSprites(config.sprites || {}).then(function() {
+        loadImages(config.images || {}).then(function() {
 
             // precompute bounds for all sprite frames
-            if (config.sprites) {
-                for (var key in config.sprites) {
+            if (config.images) {
+                for (var key in config.images) {
                     var img = images[key];
                     if (img && img.complete && img.naturalWidth) {
                         // this warms up the boundingCache
@@ -182,13 +182,13 @@
     }
 
     /**
-     * Loads and decodes all sprite images
-     * @param {Object} sprites - Key-value map of sprite keys to image URLs
+     * Loads and decodes all images
+     * @param {Object} images - Key-value map of image keys to image URLs
      * @returns {Promise} - Resolves when all images are loaded and decoded
      */
-    function loadSprites(sprites) {
+    function loadImages(imageMap) {
 
-        var keys = Object.keys(sprites);
+        var keys = Object.keys(imageMap);
         var total = keys.length;
 
         if (!total) return Promise.resolve();
@@ -234,7 +234,7 @@
 
             for (var i = 0; i < total; i++) {
                 var key = keys[i];
-                var url = sprites[key];
+                var url = imageMap[key];
                 var img = new Image();
                 img.key = key; // for debugging
                 img.onload = handleLoad.bind(img, key);
@@ -1003,7 +1003,7 @@
      */
     function startLoop() {
 
-        if (!_initilised) throw new Error('punter.init must be called first');
+        if (!_initilised) throw new Error('punter.setup must be called first');
 
         _canvasCtx = _canvas.getContext('2d', { alpha: true, desynchronized: true });
         _canvasCtx.imageSmoothingEnabled = false;
@@ -1067,7 +1067,7 @@
 
     function pauseLoop() {
 
-        if (!_initilised) throw new Error('punter.init must be called first');
+        if (!_initilised) throw new Error('punter.setup must be called first');
 
         if (_loopId !== null) {
             cancelAnimationFrame(_loopId);
@@ -1090,7 +1090,7 @@
      */
     function playSound(name, options) {
 
-        if (!_initilised) throw new Error('punter.init must be called first');
+        if (!_initilised) throw new Error('punter.setup must be called first');
 
         var buffer = sounds[name];
         if (!buffer) return;
@@ -1131,7 +1131,7 @@
 
     function stopSound(name) {
 
-        if (!_initilised) throw new Error('punter.init must be called first');
+        if (!_initilised) throw new Error('punter.setup must be called first');
 
         var arr = playingSounds[name];
         if (!arr || !arr.length) return;
@@ -1296,7 +1296,7 @@
     var api = {
 
         // initialization
-        init: init,
+        setup: setup,
 
         // scene lifecycle
         scene: function (name, handler) {
@@ -1304,7 +1304,7 @@
         },
         go: function (name) {
 
-            if (!_initilised) throw new Error('punter.init must be called first');
+            if (!_initilised) throw new Error('punter.setup must be called first');
             if (!_scenes[name]) throw new Error('punter.go: unknown scene "' + name + '"');
 
             // remove existing game loop handlers
@@ -1355,7 +1355,7 @@
 
         // sprite factory
         createSprite: function(opts) {
-            if (!_initilised) throw new Error('createSprite: punter.init must be called first');
+            if (!_initilised) throw new Error('createSprite: punter.setup must be called first');
             return new Sprite(opts);
         },
         getSprite: function(id) {
