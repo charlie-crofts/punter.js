@@ -20,6 +20,8 @@
 
       canvas {
         display: block;
+        cursor: none;
+        background: #1b2125;
       }
     </style>
     <script src="../punter.js"></script>
@@ -67,10 +69,11 @@
       // =========================================================
       // GAME SETTINGS
       // =========================================================
-      var MARGIN         = px(40); // gap between paddle and screen edge
-      var PADDLE_W       = px(14);
-      var PADDLE_H       = px(90);
-      var BALL_SIZE      = px(14);
+      var MARGIN         = px(20); // gap between paddle and screen edge
+      var PADDLE_W       = px(14); // width of paddle
+      var PADDLE_H       = px(90); // height of paddle
+      var AI_PADDLE_H    = px(90);
+      var BALL_SIZE      = px(24);
       var PADDLE_SPEED   = px(7);
       var AI_SPEED       = px(5);
       var BALL_SPEED     = px(5);
@@ -98,6 +101,10 @@
         images: {
           paddle: '../images/pong/sprites/paddle.png',
           ball:   '../images/pong/sprites/ball.png'
+        },
+        sounds: {
+          bounce: '../sounds/beep6.mp3',
+          die: '../sounds/error2.mp3'
         }
       });
 
@@ -109,7 +116,7 @@
         // Create the three sprites punter.js will draw each frame.
         // w/h set the draw size; the image is scaled to fit automatically.
         playerSprite = punter.createSprite({ id: 'player', key: 'paddle', x: 0, y: 0, w: PADDLE_W, h: PADDLE_H });
-        aiSprite     = punter.createSprite({ id: 'ai',     key: 'paddle', x: 0, y: 0, w: PADDLE_W, h: PADDLE_H });
+        aiSprite     = punter.createSprite({ id: 'ai',     key: 'paddle', x: 0, y: 0, w: PADDLE_W, h: AI_PADDLE_H });
         ballSprite   = punter.createSprite({ id: 'ball',   key: 'ball',   x: 0, y: 0, w: BALL_SIZE, h: BALL_SIZE });
 
         // Place everything in the correct starting position
@@ -159,6 +166,8 @@
             // Where on the paddle the ball hit: 0 = top edge, 1 = bottom edge, 0.5 = centre (flat return)
             var playerHit = (ballSprite.y + BALL_SIZE / 2 - playerSprite.y) / PADDLE_H;
             ballVel.y = (playerHit - 0.5) * BALL_SPEED * 2;
+
+            punter.playSound('bounce');
           }
 
           // --- Collision: ball hits AI paddle ---
@@ -169,6 +178,8 @@
             // Where on the paddle the ball hit: 0 = top edge, 1 = bottom edge, 0.5 = centre (flat return)
             var aiHit = (ballSprite.y + BALL_SIZE / 2 - aiSprite.y) / PADDLE_H;
             ballVel.y = (aiHit - 0.5) * BALL_SPEED * 2;
+
+            punter.playSound('bounce');
           }
 
           // Cap ball speed so the game stays playable
@@ -176,8 +187,17 @@
           if (ballVel.x < -MAX_BALL_SPEED) ballVel.x = -MAX_BALL_SPEED;
 
           // --- Scoring ---
-          if (ballSprite.x + BALL_SIZE < 0) { score.ai++;     resetBall(SERVE_RIGHT); }
-          if (ballSprite.x > w)             { score.player++; resetBall(SERVE_LEFT);  }
+          if (ballSprite.x + BALL_SIZE < 0) {
+            score.ai++;
+            punter.playSound('die');
+            resetBall(SERVE_RIGHT);
+          }
+
+          if (ballSprite.x > w) {
+            score.player++;
+            punter.playSound('die');
+            resetBall(SERVE_LEFT);
+          }
         });
 
         // -------------------------------------------------------
