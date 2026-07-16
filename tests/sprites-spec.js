@@ -24,7 +24,7 @@ describe('Sprites', function () {
 
     it('creates a sprite with the given id, x and y', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 10, y: 20 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 10, y: 20 });
             return { id: s.id, x: s.x, y: s.y };
         });
         expect(result.id).toBe('s1');
@@ -34,7 +34,7 @@ describe('Sprites', function () {
 
     it('defaults width and height from the image dimensions', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
             return { w: s.w, h: s.h };
         });
         // 1x1 pixel image → both default to 1
@@ -45,8 +45,8 @@ describe('Sprites', function () {
     it('throws when creating a sprite with a duplicate id', async function () {
         var threw = await page.evaluate(function () {
             try {
-                punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
-                punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
+                punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
+                punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
                 return false;
             } catch (e) { return true; }
         });
@@ -56,7 +56,7 @@ describe('Sprites', function () {
     it('throws when the image key has not been loaded', async function () {
         var threw = await page.evaluate(function () {
             try {
-                punter.createSprite({ id: 's1', key: 'missing', x: 0, y: 0 });
+                punter.createSprite({ id: 's1', image: 'missing', x: 0, y: 0 });
                 return false;
             } catch (e) { return true; }
         });
@@ -67,7 +67,7 @@ describe('Sprites', function () {
         var result = await page.evaluate(function () {
             var errors = [];
             try { punter.createSprite(); } catch (e) { errors.push('no-opts'); }
-            try { punter.createSprite({ id: 's1', key: 'hero' }); } catch (e) { errors.push('no-x'); }
+            try { punter.createSprite({ id: 's1', image: 'hero' }); } catch (e) { errors.push('no-x'); }
             return errors;
         });
         expect(result).toContain('no-opts');
@@ -78,7 +78,7 @@ describe('Sprites', function () {
 
     it('getSprite returns the sprite by id', async function () {
         var result = await page.evaluate(function () {
-            punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
+            punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
             var found = punter.getSprite('s1');
             return found ? found.id : null;
         });
@@ -96,7 +96,7 @@ describe('Sprites', function () {
 
     it('moveX changes x position', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 50, y: 0 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 50, y: 0 });
             s.moveX(10);
             var after1 = s.x;
             s.moveX(-25);
@@ -108,7 +108,7 @@ describe('Sprites', function () {
 
     it('moveY changes y position', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 50 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 50 });
             s.moveY(15);
             return s.y;
         });
@@ -117,7 +117,7 @@ describe('Sprites', function () {
 
     it('centerX positions the sprite horizontally in the middle', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
             s.centerX();
             return { x: s.x, expected: Math.floor((punter.width - s.w) / 2) };
         });
@@ -126,7 +126,7 @@ describe('Sprites', function () {
 
     it('centerY positions the sprite vertically in the middle', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
             s.centerY();
             return { y: s.y, expected: Math.floor((punter.height - s.h) / 2) };
         });
@@ -137,7 +137,7 @@ describe('Sprites', function () {
 
     it('bounce oscillates the sprite y around its initial position', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 100 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 100 });
             var initial = s.initialY;
             s.bounce(8, 10);
             var firstY = s.y;
@@ -152,7 +152,7 @@ describe('Sprites', function () {
 
     it('visible is true when the sprite is on screen', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
             return s.visible;
         });
         expect(result).toBe(true);
@@ -160,7 +160,7 @@ describe('Sprites', function () {
 
     it('visible is false when the sprite is fully off the left edge', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
             s.moveX(-(s.w + 1));
             return s.visible;
         });
@@ -171,7 +171,7 @@ describe('Sprites', function () {
 
     it('destroy marks the sprite as destroyed and removes it from the registry', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
             s.destroy();
             return { destroyed: s.destroyed, found: punter.getSprite('s1') };
         });
@@ -181,25 +181,25 @@ describe('Sprites', function () {
 
     // --- animation ---
 
-    it('getFrameKey returns the key string for a non-animated sprite', async function () {
+    it('getFrameImage returns the image string for a non-animated sprite', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
-            return s.getFrameKey();
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
+            return s.getFrameImage();
         });
         expect(result).toBe('hero');
     });
 
-    it('getFrameKey cycles through keys for an animated sprite', async function () {
+    it('getFrameImage cycles through images for an animated sprite', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: ['hero', 'hero'], x: 0, y: 0 });
-            return s.getFrameKey();
+            var s = punter.createSprite({ id: 's1', image: ['hero', 'hero'], x: 0, y: 0 });
+            return s.getFrameImage();
         });
         expect(result).toBe('hero');
     });
 
     it('animate advances the frame index after the delay elapses', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: ['hero', 'hero'], x: 0, y: 0 });
+            var s = punter.createSprite({ id: 's1', image: ['hero', 'hero'], x: 0, y: 0 });
             var initial = s._frameIndex;
             s.animate(0);
             var afterFirst = s._frameIndex;
@@ -215,8 +215,8 @@ describe('Sprites', function () {
 
     it('isCollidingWith returns true when bounding boxes overlap', async function () {
         var result = await page.evaluate(function () {
-            var s1 = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
-            var s2 = punter.createSprite({ id: 's2', key: 'hero', x: 0, y: 0 });
+            var s1 = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
+            var s2 = punter.createSprite({ id: 's2', image: 'hero', x: 0, y: 0 });
             s1.bounds = { x: 0, y: 0, w: 100, h: 100 };
             s2.bounds = { x: 50, y: 50, w: 100, h: 100 };
             return s1.isCollidingWith(s2);
@@ -226,8 +226,8 @@ describe('Sprites', function () {
 
     it('isCollidingWith returns false when bounding boxes do not overlap', async function () {
         var result = await page.evaluate(function () {
-            var s1 = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
-            var s2 = punter.createSprite({ id: 's2', key: 'hero', x: 0, y: 0 });
+            var s1 = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
+            var s2 = punter.createSprite({ id: 's2', image: 'hero', x: 0, y: 0 });
             s1.bounds = { x: 0, y: 0, w: 100, h: 100 };
             s2.bounds = { x: 200, y: 200, w: 100, h: 100 };
             return s1.isCollidingWith(s2);
@@ -237,8 +237,8 @@ describe('Sprites', function () {
 
     it('isCollidingWith returns false when either sprite has no bounds', async function () {
         var result = await page.evaluate(function () {
-            var s1 = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
-            var s2 = punter.createSprite({ id: 's2', key: 'hero', x: 0, y: 0 });
+            var s1 = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
+            var s2 = punter.createSprite({ id: 's2', image: 'hero', x: 0, y: 0 });
             return s1.isCollidingWith(s2);
         });
         expect(result).toBe(false);
@@ -248,7 +248,7 @@ describe('Sprites', function () {
 
     it('seen flag starts as false and can be set', async function () {
         var result = await page.evaluate(function () {
-            var s = punter.createSprite({ id: 's1', key: 'hero', x: 0, y: 0 });
+            var s = punter.createSprite({ id: 's1', image: 'hero', x: 0, y: 0 });
             var initial = s.seen;
             s.seen = true;
             return { initial: initial, afterSet: s.seen };

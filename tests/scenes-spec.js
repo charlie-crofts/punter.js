@@ -107,7 +107,7 @@ describe('Scenes', function () {
     it('go() destroys all sprites from the previous scene', async function () {
         var result = await page.evaluate(function () {
             punter.scene('sceneWithSprite', function () {
-                punter.createSprite({ id: 'scene-sprite', key: 'hero', x: 0, y: 0 });
+                punter.createSprite({ id: 'scene-sprite', image: 'hero', x: 0, y: 0 });
             });
             punter.scene('emptyScene', function () {});
             punter.go('sceneWithSprite');
@@ -122,10 +122,10 @@ describe('Scenes', function () {
     it('go() does not destroy sprites created in the new scene', async function () {
         var result = await page.evaluate(function () {
             punter.scene('srcScene', function () {
-                punter.createSprite({ id: 'src-sprite', key: 'hero', x: 0, y: 0 });
+                punter.createSprite({ id: 'src-sprite', image: 'hero', x: 0, y: 0 });
             });
             punter.scene('dstScene', function () {
-                punter.createSprite({ id: 'dst-sprite', key: 'hero', x: 0, y: 0 });
+                punter.createSprite({ id: 'dst-sprite', image: 'hero', x: 0, y: 0 });
             });
             punter.go('srcScene');
             punter.go('dstScene');

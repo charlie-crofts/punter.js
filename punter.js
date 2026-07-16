@@ -469,7 +469,7 @@
      * Creates a sprite with optional animation, scaling, and collision bounds
      * @param {Object} opts - Sprite config
      * @param {string} opts.id - unique id for the sprite
-     * @param {string|string[]} opts.key - sprite key used when loading sprite (use array for animations)
+     * @param {string|string[]} opts.image - image name from config.images (use array for animations)
      * @param {number} opts.x - x position
      * @param {number} opts.y - y position
      * @param {number} [opts.w] - width
@@ -482,13 +482,13 @@
 
         if (!opts || typeof opts !== 'object') throw new Error('Sprite: missing opts param');
         if (!opts.id || _sprites[opts.id]) throw new Error('Sprite: id must be unique');
-        if (!opts.key) throw new Error('Sprite: missing key');
+        if (!opts.image) throw new Error('Sprite: missing image');
         if (typeof opts.x === 'undefined') throw new Error('Sprite: missing x');
         if (typeof opts.y === 'undefined') throw new Error('Sprite: missing y');
 
         // option values
         this.id = opts.id;
-        this.key = opts.key;
+        this.image = opts.image;
         this.preserveAspect = (opts.preserveAspect !== false);
         this.collidable = (opts.collidable !== false);
         this.outline = (typeof opts.outline === 'string') ? opts.outline : null;
@@ -523,9 +523,9 @@
         }
 
         this._frameIndex = 0;
-        this._animated = Array.isArray(this.key);
+        this._animated = Array.isArray(this.image);
 
-        var initialDrawKey = Array.isArray(this.key) ? this.key[0] : this.key;
+        var initialDrawKey = Array.isArray(this.image) ? this.image[0] : this.image;
         var img = images[initialDrawKey];
 
         if (!img || !img.complete || !img.naturalWidth) throw new Error('Sprite: image not loaded ' + initialDrawKey);
@@ -542,12 +542,12 @@
         // cache sprite in memory
         _sprites[this.id] = this;
     }
-    Sprite.prototype.getFrameKey = function () {
-        if (!this._animated) return this.key;
+    Sprite.prototype.getFrameImage = function () {
+        if (!this._animated) return this.image;
 
         var index = (typeof this.frame === 'number' && this.frame >= 0) ? this.frame : this._frameIndex;
 
-        return this.key[index % this.key.length];        
+        return this.image[index % this.image.length];
     };
     Sprite.prototype.update = function () {};
     Sprite.prototype.draw = function (ctx) {
@@ -564,7 +564,7 @@
         if (this.repeatX) return this.drawRepeatX(ctx);
         if (this.repeatY) return this.drawRepeatY(ctx);
 
-        var drawKey = this.getFrameKey();               // frame key to draw (single or animated)
+        var drawKey = this.getFrameImage();               // frame key to draw (single or animated)
         var img = images[drawKey];                      // loaded image object
         if (!img || !img.complete || !img.naturalWidth) return;
 
@@ -647,7 +647,7 @@
 
         if (this.destroyed) return;
 
-        var imgKey = this.getFrameKey();
+        var imgKey = this.getFrameImage();
         var img = images[imgKey];
         if (!img || !img.complete || !img.naturalWidth) return;
 
@@ -712,7 +712,7 @@
      * @returns {void}
      */
     Sprite.prototype.computeBounds = function (img) {
-        var frameKey = this.getFrameKey();
+        var frameKey = this.getFrameImage();
 
         if (!this.relBounds || this._lastBoundsKey !== frameKey) {
             this.relBounds = boundingCache.get(frameKey);
@@ -742,7 +742,7 @@
     };
     Sprite.prototype.drawRepeatX = function (ctx) {
 
-        var imgKey = this.getFrameKey();
+        var imgKey = this.getFrameImage();
         var img = images[imgKey];
         if (!img || !img.complete || !img.naturalWidth) return;
 
@@ -764,7 +764,7 @@
     };
     Sprite.prototype.drawRepeatY = function (ctx) {
 
-        var imgKey = this.getFrameKey();
+        var imgKey = this.getFrameImage();
         var img = images[imgKey];
         if (!img || !img.naturalHeight) return;
 
@@ -792,7 +792,7 @@
 
         if (now - this._lastFrameTime >= delayBetweenFrames) {
             this._lastFrameTime = now;
-            this._frameIndex = (this._frameIndex + 1) % this.key.length;
+            this._frameIndex = (this._frameIndex + 1) % this.image.length;
         }
     };
     Sprite.prototype.moveX = function (dx) {

@@ -219,7 +219,7 @@ describe('Interface', function () {
             return new Promise(function (resolve) {
                 var sprite;
                 punter.scene('autoDrawScene', function () {
-                    sprite = punter.createSprite({ id: 'auto-sprite', key: 'hero', x: 0, y: 0 });
+                    sprite = punter.createSprite({ id: 'auto-sprite', image: 'hero', x: 0, y: 0 });
                 });
                 punter.go('autoDrawScene');
                 setTimeout(function () { resolve(sprite.bounds != null); }, 100);

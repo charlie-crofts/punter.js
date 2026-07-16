@@ -76,7 +76,7 @@ punter.setup({
 // 2. Define a scene
 punter.scene('level1', function () {
 
-  var player = punter.createSprite({ id: 'player', key: 'player', x: '50%', y: '50%' });
+  var player = punter.createSprite({ id: 'player', image: 'player', x: '50%', y: '50%' });
 
   punter.on('update', function () {
     if (punter.keys['ArrowRight']) player.moveX(3);
@@ -163,10 +163,10 @@ A sprite is any image in your game - a character, enemy, coin, background tile. 
 
 ```js
 var player = punter.createSprite({
-  id:  'player',  // unique name - no two sprites can share one
-  key: 'player',  // matches a key from config.sprites
-  x:   '50%',    // position - number (pixels) or percent string
-  y:   '80%'
+  id:    'player',  // unique name - no two sprites can share one
+  image: 'player',  // name from config.images
+  x:     '50%',    // position - number (pixels) or percent string
+  y:     '80%'
 });
 ```
 
@@ -175,7 +175,7 @@ var player = punter.createSprite({
 Option           | Default    | Description
 -----------------|------------|----------------------------------------------------------------------------------------------------
 `id`             | -          | **Required.** Unique name for this sprite.
-`key`            | -          | **Required.** Image key from `config.images`. Pass an array (`['frame1','frame2']`) for animation.
+`image`          | -          | **Required.** Image name from `config.images`. Pass an array (`['frame1','frame2']`) for animation.
 `x`              | -          | **Required.** Horizontal position in pixels or `'50%'`.
 `y`              | -          | **Required.** Vertical position in pixels or `'50%'`.
 `w`              | auto       | Width in pixels or percent. Inferred from the image if omitted.
@@ -231,12 +231,12 @@ player.center(0, -50);  // centred, 50px above the middle
 Use `sprite.centerX()` or `sprite.centerY()` to centre on one axis only.
 
 #### `sprite.animate(delayMs)`
-Advance to the next animation frame. Requires `key` to be an array of image keys.
+Advance to the next animation frame. Requires `image` to be an array of image names.
 
 ```js
 var run = punter.createSprite({
-  id:  'runner',
-  key: ['run1', 'run2', 'run3'],
+  id:    'runner',
+  image: ['run1', 'run2', 'run3'],
   x: 100, y: 200
 });
 

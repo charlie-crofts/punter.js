@@ -117,9 +117,9 @@
 
         // Create the three sprites punter.js will draw each frame.
         // w/h set the draw size; the image is scaled to fit automatically.
-        playerSprite = punter.createSprite({ id: 'player', key: 'paddle', x: 0, y: 0, w: PADDLE_W, h: PADDLE_H });
-        aiSprite     = punter.createSprite({ id: 'ai',     key: 'paddle', x: 0, y: 0, w: PADDLE_W, h: AI_PADDLE_H });
-        ballSprite   = punter.createSprite({ id: 'ball',   key: 'ball',   x: 0, y: 0, w: BALL_SIZE, h: BALL_SIZE });
+        playerSprite = punter.createSprite({ id: 'player', image: 'paddle', x: 0, y: 0, w: PADDLE_W, h: PADDLE_H });
+        aiSprite     = punter.createSprite({ id: 'ai',     image: 'paddle', x: 0, y: 0, w: PADDLE_W, h: AI_PADDLE_H });
+        ballSprite   = punter.createSprite({ id: 'ball',   image: 'ball',   x: 0, y: 0, w: BALL_SIZE, h: BALL_SIZE });
 
         // Place everything in the correct starting position
         resetPositions();
