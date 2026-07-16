@@ -158,7 +158,7 @@ punter.on('resize', function () {
 
 ## Sprites
 
-A sprite is any image in your game - a character, enemy, coin, background tile. Create one with `punter.createSprite()`:
+A sprite is any image in your game - a character, enemy, coin, background tile. Create one with `punter.createSprite(options)`:
 
 ```js
 var player = punter.createSprite({
@@ -169,7 +169,7 @@ var player = punter.createSprite({
 });
 ```
 
-### Creation Options
+### Options
 
 Option           | Default    | Description
 -----------------|------------|----------------------------------------------------------------------------------------------------
@@ -186,7 +186,7 @@ Option           | Default    | Description
 `clipHeight`     | `null`     | Limit the drawn height in pixels - useful for health/fill bars.
 `clipFrom`       | `'bottom'` | Which end to clip from: `'top'` or `'bottom'`.
 
-### Sprite Properties
+### Properties
 
 Property    | Description
 ------------|-----------------------------------------------------------------------------------------
@@ -197,7 +197,7 @@ Property    | Description
 `frame`     | Override the current animation frame index. Set to `null` to let `animate()` control it.
 `destroyed` | `true` after `destroy()` has been called. Read-only.
 
-### Sprite Methods
+### Methods
 
 #### `sprite.draw(ctx)`
 Draws the sprite manually. Only needed when using a custom `draw` handler - for example, to control layer order alongside backgrounds or text.
