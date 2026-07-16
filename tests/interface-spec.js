@@ -197,4 +197,34 @@ describe('Interface', function () {
         });
         expect(threw).toBe(false);
     });
+
+    // --- draw handler ---
+
+    it('draw handler fires each frame when registered', async function () {
+        var result = await page.evaluate(function () {
+            return new Promise(function (resolve) {
+                var callCount = 0;
+                punter.scene('drawHandlerScene', function () {
+                    punter.on('draw', function () { callCount++; });
+                });
+                punter.go('drawHandlerScene');
+                setTimeout(function () { resolve(callCount); }, 100);
+            });
+        });
+        expect(result).toBeGreaterThan(0);
+    });
+
+    it('sprites are drawn automatically when no draw handler is set', async function () {
+        var result = await page.evaluate(function () {
+            return new Promise(function (resolve) {
+                var sprite;
+                punter.scene('autoDrawScene', function () {
+                    sprite = punter.createSprite({ id: 'auto-sprite', key: 'hero', x: 0, y: 0 });
+                });
+                punter.go('autoDrawScene');
+                setTimeout(function () { resolve(sprite.bounds != null); }, 100);
+            });
+        });
+        expect(result).toBe(true);
+    });
 });

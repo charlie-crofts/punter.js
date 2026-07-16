@@ -84,4 +84,40 @@ describe('Scenes', function () {
         });
         expect(result).toEqual(['second']);
     });
+
+    it('go() destroys all sprites from the previous scene', async function () {
+        var result = await page.evaluate(function () {
+            punter.scene('sceneWithSprite', function () {
+                punter.createSprite({ id: 'scene-sprite', key: 'hero', x: 0, y: 0 });
+            });
+            punter.scene('emptyScene', function () {});
+            punter.go('sceneWithSprite');
+            var before = punter.sprites.length;
+            punter.go('emptyScene');
+            return { before: before, after: punter.sprites.length };
+        });
+        expect(result.before).toBe(1);
+        expect(result.after).toBe(0);
+    });
+
+    it('go() does not destroy sprites created in the new scene', async function () {
+        var result = await page.evaluate(function () {
+            punter.scene('srcScene', function () {
+                punter.createSprite({ id: 'src-sprite', key: 'hero', x: 0, y: 0 });
+            });
+            punter.scene('dstScene', function () {
+                punter.createSprite({ id: 'dst-sprite', key: 'hero', x: 0, y: 0 });
+            });
+            punter.go('srcScene');
+            punter.go('dstScene');
+            return {
+                srcExists: punter.getSprite('src-sprite') !== null,
+                dstExists: punter.getSprite('dst-sprite') !== null,
+                count: punter.sprites.length
+            };
+        });
+        expect(result.srcExists).toBe(false);
+        expect(result.dstExists).toBe(true);
+        expect(result.count).toBe(1);
+    });
 });

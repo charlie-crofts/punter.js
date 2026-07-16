@@ -84,10 +84,6 @@ punter.scene('level1', function () {
     if (punter.keys['ArrowUp'])    player.moveY(-3);
     if (punter.keys['ArrowDown'])  player.moveY(3);
   });
-
-  punter.on('draw', function () {
-    player.draw(this); // 'this' is the canvas 2D context
-  });
 });
 
 // 3. Start when ready
@@ -123,7 +119,7 @@ Option    | Required | Description
 
 ## Scenes
 
-Scenes are the different screens in your game - a menu, level 1, game over. Define each with `punter.scene()`, then switch between them with `punter.go()`. Switching scenes automatically clears the previous update/draw handlers.
+Scenes are the different screens in your game - a menu, level 1, game over. Define each with `punter.scene()`, then switch between them with `punter.go()`. Switching scenes automatically clears the previous update/draw handlers and destroys all sprites from the previous scene.
 
 ```js
 punter.scene('menu', function () {
@@ -152,8 +148,10 @@ punter.on('update', function () {
 });
 
 punter.on('draw', function () {
-  // fires every frame - 'this' is the canvas 2D context
-  player.draw(this);
+  // optional - 'this' is the canvas 2D context
+  // sprites are drawn automatically before this runs, so use it for
+  // overlays: score text, HUD, shapes drawn on top of sprites
+  // backgrounds should be set via CSS on the canvas element
 });
 
 punter.on('resize', function () {
@@ -205,7 +203,7 @@ Property    | Description
 ### Sprite Methods
 
 #### `sprite.draw(ctx)`
-Draws the sprite. Call inside your `draw` handler - `ctx` is `this`.
+Draws the sprite manually. Only needed when using a custom `draw` handler — for example, to control layer order alongside backgrounds or text.
 
 ```js
 punter.on('draw', function () {

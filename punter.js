@@ -39,7 +39,7 @@
     var eventHandlers = {
         ready: function() {},
         update: function() {},
-        draw: function() {},
+        draw: null,
         resize: function() {},
         go: function() {}
     };
@@ -1037,8 +1037,17 @@
             // clear screen
             _canvasCtx.clearRect(0, 0, engine.width, engine.height);
 
-            // draw everything
-            eventHandlers.draw.call(_canvasCtx);
+            // auto-draw all sprites
+            for (var _id in _sprites) {
+                if (Object.prototype.hasOwnProperty.call(_sprites, _id) && !_sprites[_id].destroyed) {
+                    _sprites[_id].draw(_canvasCtx);
+                }
+            }
+
+            // draw handler runs after sprites — use for text, HUD, overlays
+            if (eventHandlers.draw) {
+                eventHandlers.draw.call(_canvasCtx);
+            }
 
             // reset the flag after draw
             _resized = false;
@@ -1310,7 +1319,14 @@
 
             // remove existing game loop handlers
             eventHandlers.update = function () {};
-            eventHandlers.draw = function () {};
+            eventHandlers.draw = null;
+
+            // destroy all sprites from the previous scene
+            for (var _sid in _sprites) {
+                if (Object.prototype.hasOwnProperty.call(_sprites, _sid)) {
+                    _sprites[_sid].destroy();
+                }
+            }
 
             // ensure we clear all input from last scene
             engine.clearInput();
