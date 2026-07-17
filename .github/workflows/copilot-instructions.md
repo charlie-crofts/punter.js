@@ -3,12 +3,14 @@
 - Use plain JavaScript
 - Use ES5 syntax only
 - Keep code simple enough for a junior developer to understand
+- Use minimal schemantic HTML
 - Use single quotes
 - Always use semicolons
 - Do not use arrow functions
 - Do not use classes
 - Do not use async or await
 - Do not use map, filter or reduce
+- Do not use const
 - Prefer small named functions
 - Avoid unnecessary abstractions
 - Avoid build tools and dependencies
