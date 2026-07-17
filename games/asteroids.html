@@ -489,6 +489,12 @@
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'bottom';
         ctx.fillText('ARROWS / WASD  \u00b7  SPACE to fire', w / 2, h - 10 * DPR);
+
+        ctx.fillStyle    = COLOR_DIM;
+        ctx.font         = 12 * DPR + 'px monospace';
+        ctx.textAlign    = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('Created by Charlie Crofts', w - pad, h - 10 * DPR);
       }
 
       function drawGameOver(ctx, w, h) {
