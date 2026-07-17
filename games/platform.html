@@ -1,0 +1,523 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Platformer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at top, rgba(255,255,255,0.18), transparent 35%),
+          linear-gradient(180deg, #87d2f5 0%, #bde8ff 48%, #f4efe1 100%);
+      }
+
+      canvas {
+        display: block;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0)),
+          linear-gradient(180deg, #7fc7ef 0%, #b8e6ff 55%, #f0d6a2 100%);
+      }
+    </style>
+    <script src="../punter.js"></script>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+    <script>
+
+      var COLOR_TEXT = '#18344a';
+      var COLOR_DIM = '#446375';
+      var COLOR_OVERLAY = 'rgba(14, 33, 48, 0.28)';
+      var COLOR_SHADOW = 'rgba(24, 52, 74, 0.14)';
+
+      var DPR = punter.dpr;
+
+      /**
+       * Converts logical pixels to device pixels
+       * @param {number} n - logical pixel size
+       * @returns {number}
+       */
+      function px(n) {
+        return n * DPR;
+      }
+
+      /**
+       * Clamps a value between min and max
+       * @param {number} value
+       * @param {number} min
+       * @param {number} max
+       * @returns {number}
+       */
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(value, max));
+      }
+
+      /**
+       * Updates a sprite's collision bounds to match its current x/y.
+       * Must be called after moving a sprite manually during the update loop,
+       * because isCollidingWith() reads bounds — not x/y directly.
+       * @param {Object} sprite - punter sprite
+       * @returns {void}
+       */
+      function syncBounds(sprite) {
+        sprite.bounds = {
+          x: sprite.x,
+          y: sprite.y,
+          w: sprite.w,
+          h: sprite.h
+        };
+      }
+
+      // game constants — tweak these to adjust feel and difficulty
+      var PLAYER_W = px(24);
+      var PLAYER_H = px(56);
+      var PLAYER_SPEED = px(5);
+      var PLAYER_AIR_SPEED = px(4);
+      var JUMP_SPEED = px(13);
+      var GRAVITY = px(0.7);
+      var MAX_FALL_SPEED = px(12);
+      var ENEMY_SPEED = px(2.2);
+      var COIN_SIZE = px(18);
+      var PLATFORM_H = px(18);
+      var GOAL_W = px(42);
+      var GOAL_H = px(20);
+      var GROUND_MARGIN = px(26);
+
+      // game state — reset in buildLevel() each time the scene starts
+      var playerSprite;
+      var goalSprite;
+      var platformSprites;
+      var coinSprites;
+      var enemySprites;
+      var playerVel;
+      var playerStart;
+      var score;
+      var totalCoins;
+      var onGround;
+      var won;
+      var gameOver;
+
+      punter.setup({
+        canvas: '#game',
+        images: {
+          player: '../images/platform/player.png',
+          platform: '../images/platform/platform-grass.png',
+          platformAlt: '../images/platform/platform-dirt.png',
+          goal: '../images/platform/goal.png',
+          coin: '../images/platform/coin.png',
+          enemy: '../images/platform/enemy.png',
+          tree: '../images/platform/tree.png',
+          rock: '../images/platform/rock.png',
+          hill: '../images/platform/hill.png'
+        },
+        sounds: {
+          jump: '../sounds/beep6.mp3',
+          coin: '../sounds/click1.mp3',
+          hit: '../sounds/error2.mp3',
+          win: '../sounds/fanfare1.mp3'
+        }
+      });
+
+      punter.scene('play', function () {
+        buildLevel();
+
+        punter.on('update', function () {
+          if (gameOver || won) {
+            if (punter.keys[' '] || punter.mouse.clicked) {
+              punter.clearInput();
+              punter.go('play');
+            }
+            return;
+          }
+
+          updatePlayerInput();
+          updatePlayerPhysics();
+          updateCoins();
+          updateEnemies();
+          updateGoal();
+        });
+
+        punter.on('draw', function () {
+          var ctx = this;
+          var w = punter.width;
+          var h = punter.height;
+
+          ctx.fillStyle = COLOR_TEXT;
+          ctx.font = 'bold ' + px(18) + 'px monospace';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillText('Coins: ' + score + ' / ' + totalCoins, px(14), px(14));
+
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.font = px(14) + 'px monospace';
+          ctx.fillStyle = COLOR_DIM;
+          ctx.fillText('Arrow keys or A / D to move, SPACE to jump, tap left / right to steer', w / 2, h - px(14));
+
+          if (!won && !gameOver) {
+            ctx.textBaseline = 'top';
+            ctx.fillText('Collect every coin, then touch the golden platform', w / 2, px(42));
+          }
+
+          if (won || gameOver) {
+            ctx.fillStyle = COLOR_OVERLAY;
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = 'bold ' + px(38) + 'px monospace';
+            ctx.fillText(won ? 'YOU ESCAPED!' : 'TRY AGAIN', w / 2, h / 2 - px(24));
+            ctx.font = px(18) + 'px monospace';
+            ctx.fillText('Press SPACE or tap to restart', w / 2, h / 2 + px(24));
+          }
+        });
+      });
+
+      /**
+       * Resets all state and builds the level: platforms, player, coins, enemies and goal
+       * @returns {void}
+       */
+      function buildLevel() {
+        var w = punter.width;
+        var h = punter.height;
+        var groundY = h - GROUND_MARGIN - PLATFORM_H;
+        var platformW = Math.floor(w * 0.18);
+
+        platformSprites = [];
+        coinSprites = [];
+        enemySprites = [];
+        score = 0;
+        totalCoins = 4;
+        onGround = false;
+        won = false;
+        gameOver = false;
+        playerVel = { x: 0, y: 0 };
+        playerStart = { x: px(36), y: groundY - PLAYER_H };
+
+        createPlatform('ground-left', 'platform', 0, groundY, Math.floor(w * 0.36), PLATFORM_H);
+        createPlatform('ground-mid', 'platformAlt', Math.floor(w * 0.41), groundY, Math.floor(w * 0.24), PLATFORM_H);
+        createPlatform('ground-right', 'platform', Math.floor(w * 0.70), groundY, Math.floor(w * 0.30), PLATFORM_H);
+        createPlatform('ledge-low', 'platformAlt', Math.floor(w * 0.18), h - px(122), platformW, PLATFORM_H);
+        createPlatform('ledge-mid', 'platform', Math.floor(w * 0.46), h - px(205), platformW, PLATFORM_H);
+        createPlatform('ledge-high', 'platformAlt', Math.floor(w * 0.68), h - px(292), platformW, PLATFORM_H);
+        createPlatform('ledge-top', 'platform', Math.floor(w * 0.43), h - px(364), platformW, PLATFORM_H);
+
+        playerSprite = punter.createSprite({
+          id: 'player',
+          image: 'player',
+          x: playerStart.x,
+          y: playerStart.y,
+          w: PLAYER_W,
+          h: PLAYER_H,
+          preserveAspect: false
+        });
+
+        goalSprite = punter.createSprite({
+          id: 'goal',
+          image: 'goal',
+          x: w - GOAL_W - px(28),
+          y: h - px(332),
+          w: GOAL_W,
+          h: GOAL_H,
+          preserveAspect: false
+        });
+
+        createCoin('coin-1', Math.floor(w * 0.25), h - px(154));
+        createCoin('coin-2', Math.floor(w * 0.53), h - px(238));
+        createCoin('coin-3', Math.floor(w * 0.75), h - px(325));
+        createCoin('coin-4', Math.floor(w * 0.49), h - px(396));
+
+        createEnemy('enemy-1', Math.floor(w * 0.47), h - px(227), Math.floor(w * 0.46), Math.floor(w * 0.61));
+        createEnemy('enemy-2', Math.floor(w * 0.71), h - px(314), Math.floor(w * 0.67), Math.floor(w * 0.84));
+
+        // background scenery (non-collidable decorations)
+        createScenery('hill-1', 'hill', Math.floor(w * 0.05), groundY - px(36), px(100), px(38));
+        createScenery('hill-2', 'hill', Math.floor(w * 0.55), groundY - px(30), px(80), px(32));
+        createScenery('tree-1', 'tree', Math.floor(w * 0.12), groundY - px(46), px(28), px(46));
+        createScenery('tree-2', 'tree', Math.floor(w * 0.34), groundY - px(46), px(28), px(46));
+        createScenery('tree-3', 'tree', Math.floor(w * 0.78), groundY - px(46), px(28), px(46));
+        createScenery('rock-1', 'rock', Math.floor(w * 0.28), groundY - px(14), px(20), px(14));
+        createScenery('rock-2', 'rock', Math.floor(w * 0.62), groundY - px(14), px(18), px(12));
+
+        syncBounds(playerSprite);
+        syncBounds(goalSprite);
+      }
+
+      /**
+       * Creates a non-collidable scenery decoration sprite
+       * @param {string} id - unique sprite id
+       * @param {string} image - image key
+       * @param {number} x
+       * @param {number} y
+       * @param {number} w
+       * @param {number} h
+       * @returns {void}
+       */
+      function createScenery(id, image, x, y, w, h) {
+        punter.createSprite({
+          id: id,
+          image: image,
+          x: x,
+          y: y,
+          w: w,
+          h: h,
+          preserveAspect: false,
+          collidable: false
+        });
+      }
+
+      /**
+       * Creates a static platform sprite and registers it for collision
+       * @param {string} id - unique sprite id
+       * @param {string} image - image key from punter.setup
+       * @param {number} x
+       * @param {number} y
+       * @param {number} w
+       * @param {number} h
+       * @returns {Object} the created sprite
+       */
+      function createPlatform(id, image, x, y, w, h) {
+        var sprite = punter.createSprite({
+          id: id,
+          image: image,
+          x: x,
+          y: y,
+          w: w,
+          h: h,
+          preserveAspect: false
+        });
+
+        syncBounds(sprite);
+        platformSprites.push(sprite);
+        return sprite;
+      }
+
+      /**
+       * Creates a bouncing collectible coin at the given position
+       * @param {string} id - unique sprite id
+       * @param {number} x
+       * @param {number} y
+       * @returns {void}
+       */
+      function createCoin(id, x, y) {
+        var sprite = punter.createSprite({
+          id: id,
+          image: 'coin',
+          x: x,
+          y: y,
+          w: COIN_SIZE,
+          h: COIN_SIZE,
+          collidable: false
+        });
+
+        syncBounds(sprite);
+        coinSprites.push(sprite);
+      }
+
+      /**
+       * Creates an enemy that patrols left and right between minX and maxX
+       * @param {string} id - unique sprite id
+       * @param {number} x - starting x
+       * @param {number} y
+       * @param {number} minX - left patrol boundary
+       * @param {number} maxX - right patrol boundary
+       * @returns {void}
+       */
+      function createEnemy(id, x, y, minX, maxX) {
+        var sprite = punter.createSprite({
+          id: id,
+          image: 'enemy',
+          x: x,
+          y: y,
+          w: px(20),
+          h: px(20)
+        });
+
+        sprite.minX = minX;
+        sprite.maxX = maxX;
+        sprite.direction = 1;
+        syncBounds(sprite);
+        enemySprites.push(sprite);
+      }
+
+      function updatePlayerInput() {
+        var movingLeft = punter.keys['ArrowLeft'] || punter.keys['a'];
+        var movingRight = punter.keys['ArrowRight'] || punter.keys['d'];
+        var speed = onGround ? PLAYER_SPEED : PLAYER_AIR_SPEED; // less control in the air
+
+        if (movingLeft && !movingRight) {
+          playerVel.x = -speed;
+        }
+        else if (movingRight && !movingLeft) {
+          playerVel.x = speed;
+        }
+        else {
+          playerVel.x = 0;
+        }
+
+        if (punter.mouse.clicked) {
+          // tap left/right side of screen to steer; centre is a dead zone
+          if (punter.mouse.x < punter.width * 0.45) {
+            playerVel.x = -speed;
+          }
+          else if (punter.mouse.x > punter.width * 0.55) {
+            playerVel.x = speed;
+          }
+
+          // tap the upper portion of the screen to jump
+          if (onGround && punter.mouse.y < punter.height * 0.78) {
+            jump();
+          }
+        }
+
+        if (onGround && (punter.keys[' '] || punter.keys['ArrowUp'] || punter.keys['w'])) {
+          jump();
+        }
+      }
+
+      /**
+       * Launches the player upward
+       * @returns {void}
+       */
+      function jump() {
+        playerVel.y = -JUMP_SPEED;
+        onGround = false;
+        punter.playSound('jump');
+      }
+
+      function updatePlayerPhysics() {
+        // capture y before moving so we can detect which side of a platform was hit
+        var prevY = playerSprite.y;
+        var i;
+
+        playerVel.y = Math.min(playerVel.y + GRAVITY, MAX_FALL_SPEED);
+
+        // --- horizontal pass: move, clamp to canvas, resolve wall collisions ---
+        playerSprite.moveX(playerVel.x);
+        playerSprite.x = clamp(playerSprite.x, 0, punter.width - playerSprite.w);
+        syncBounds(playerSprite);
+
+        for (i = 0; i < platformSprites.length; i++) {
+          if (playerSprite.isCollidingWith(platformSprites[i])) {
+            // push the player out sideways based on movement direction
+            if (playerVel.x > 0) {
+              playerSprite.x = platformSprites[i].x - playerSprite.w;
+            }
+            else if (playerVel.x < 0) {
+              playerSprite.x = platformSprites[i].x + platformSprites[i].w;
+            }
+            syncBounds(playerSprite);
+          }
+        }
+
+        // --- vertical pass: move, then resolve floor/ceiling collisions ---
+        playerSprite.moveY(playerVel.y);
+        onGround = false;
+        syncBounds(playerSprite);
+
+        for (i = 0; i < platformSprites.length; i++) {
+          if (!playerSprite.isCollidingWith(platformSprites[i])) {
+            continue;
+          }
+
+          if (prevY + playerSprite.h <= platformSprites[i].y && playerVel.y >= 0) {
+            // landed on top of a platform
+            playerSprite.y = platformSprites[i].y - playerSprite.h;
+            playerVel.y = 0;
+            onGround = true;
+          }
+          else if (prevY >= platformSprites[i].y + platformSprites[i].h && playerVel.y < 0) {
+            // hit the underside of a platform
+            playerSprite.y = platformSprites[i].y + platformSprites[i].h;
+            playerVel.y = 0;
+          }
+
+          syncBounds(playerSprite);
+        }
+
+        // fell below the screen
+        if (playerSprite.y > punter.height + px(20)) {
+          failRun();
+        }
+      }
+
+      function updateCoins() {
+        var i;
+
+        // iterate backwards so splice doesn't shift indices we haven't visited yet
+        for (i = coinSprites.length - 1; i >= 0; i--) {
+          coinSprites[i].bounce(px(4), 10);
+          syncBounds(coinSprites[i]); // coins use collidable:false so bounds aren't auto-updated on draw
+
+          if (playerSprite.isCollidingWith(coinSprites[i])) {
+            coinSprites[i].destroy();
+            coinSprites.splice(i, 1);
+            score++;
+            punter.playSound('coin');
+          }
+        }
+      }
+
+      function updateEnemies() {
+        var i;
+
+        for (i = 0; i < enemySprites.length; i++) {
+          enemySprites[i].moveX(ENEMY_SPEED * enemySprites[i].direction);
+
+          // reverse direction at each patrol boundary
+          if (enemySprites[i].x <= enemySprites[i].minX) {
+            enemySprites[i].x = enemySprites[i].minX;
+            enemySprites[i].direction = 1;
+          }
+
+          if (enemySprites[i].x + enemySprites[i].w >= enemySprites[i].maxX) {
+            enemySprites[i].x = enemySprites[i].maxX - enemySprites[i].w;
+            enemySprites[i].direction = -1;
+          }
+
+          syncBounds(enemySprites[i]);
+
+          if (playerSprite.isCollidingWith(enemySprites[i])) {
+            failRun();
+            return;
+          }
+        }
+      }
+
+      function updateGoal() {
+        if (score === totalCoins && playerSprite.isCollidingWith(goalSprite)) {
+          won = true;
+          punter.playSound('win');
+          punter.clearInput();
+        }
+      }
+
+      /**
+       * Ends the round in a game-over state
+       * @returns {void}
+       */
+      function failRun() {
+        gameOver = true;
+        punter.playSound('hit');
+        punter.clearInput();
+      }
+
+      punter.on('resize', function () {
+        if (punter.sceneName === 'play') {
+          punter.go('play');
+        }
+      });
+
+      punter.go('play');
+
+    </script>
+  </body>
+</html>
