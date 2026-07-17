@@ -11,7 +11,6 @@
 - Do not use async or await
 - Do not use map, filter or reduce
 - Do not use const
-- Prefer small named functions
 - Avoid unnecessary abstractions
 - Avoid build tools and dependencies
 - Keep examples in a single HTML file where possible
@@ -20,3 +19,29 @@
 - Keep comments lowercase and concise
 - Preserve the existing project style
 - Before finishing, check that the result works directly in a browser
+
+## 2D game instructions
+
+When asked to create or modify a 2D game:
+
+- Use the existing punter.js engine and its current APIs
+- Inspect existing games in the project before writing code
+- Follow the structure and conventions of the simplest existing example
+- Use plain ES5 JavaScript
+- Keep the game in a single HTML file unless asked otherwise
+- Do not add dependencies, frameworks or build tools
+- Keep the code simple enough for a junior developer to understand
+- Avoid classes, arrow functions, async functions and advanced patterns
+- Reuse existing engine features instead of rebuilding them
+- Preserve existing controls, scoring and gameplay unless asked to change them
+- Do not rewrite unrelated code
+- Make the smallest change needed
+- Use punter.js methods for sprites and collision detection
+- Keep game state in a small number of clearly named variables
+- Use delta time or existing engine timing APIs where appropriate
+- Ensure restart resets all game state
+- Ensure keyboard and pointer controls continue to work
+- Check asset paths before referencing images or sounds
+- Do not invent Punter.js APIs
+- When unsure about an API, inspect the engine source or existing examples
+- After making changes, check for console errors and obvious gameplay issues
