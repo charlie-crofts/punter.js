@@ -19,6 +19,7 @@
 - Keep comments lowercase and concise
 - Preserve the existing project style
 - Before finishing, check that the result works directly in a browser
+- Always format/indent code to make it easier to read
 
 ## 2D game instructions
 
